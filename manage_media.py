@@ -1,4 +1,6 @@
-# Example: python3 ./manage_media.py --source '/backup/camera/*.MTS' --target /backup/x --do-it
+# Examples:
+# python3 ./manage_media.py --source '/backup/camera/*.MTS' --target /backup/x --do-it
+# python3 /home/halley/scripts/manage_media.py --source './*' --target /backup/media --do-it
 import click
 import glob
 import subprocess
@@ -47,14 +49,21 @@ def main(source, target, do_it):
         create_datetime_string = create_datetime.strftime('%Y/%m-%d')
 
         target_dir = '{}/{}'.format(target, create_datetime_string)
-        if do_it:
-            subprocess.run(['mkdir', '-p', target_dir])
-            subprocess.run([
-                'mv',
-                '-n',
-                current_file,
-                target_dir
-            ])
-        print('Done: {file}, date: {date}'.format(file=current_file, date=create_datetime_string))
+        current_file_target_full_path = '{}/{}'.format(target_dir, os.path.basename(current_file))
+        current_file_target_exists = os.path.isfile(current_file_target_full_path)
+        if current_file_target_exists:
+            print('File exists: {file}, date: {date}, {current_file_target_full_path}'.format(file=current_file, date=create_datetime_string, current_file_target_full_path=current_file_target_full_path))
+            if do_it:
+                subprocess.run(['mv', '-b', current_file, '/tmp'])
+        else:
+            if do_it:
+                subprocess.run(['mkdir', '-p', target_dir])
+                subprocess.run([
+                    'mv',
+                    '-n',
+                    current_file,
+                    target_dir
+                ])
+            print('Done: {file}, date: {date}'.format(file=current_file, date=create_datetime_string))
 
 main()
